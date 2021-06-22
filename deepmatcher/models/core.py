@@ -370,7 +370,7 @@ class MatchingModel(nn.Module):
                 vectors_size = vectors.shape
                 embed = nn.Embedding(vectors_size[0], vectors_size[1])
                 embed.weight.data.copy_(vectors)
-                embed.weight.requires_grad = False
+                embed.weight.requires_grad = True
                 field_vectors[vectors] = dm.modules.NoMeta(embed)
             self.embed[name] = field_vectors[vectors]
 
