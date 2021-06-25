@@ -14,6 +14,7 @@ from sklearn.decomposition import TruncatedSVD
 
 import torch
 import torch.nn as nn
+import torchtext
 from torchtext.legacy import data
 from torchtext.legacy.data.example import Example
 from torchtext.utils import unicode_csv_reader
@@ -28,6 +29,9 @@ logger = logging.getLogger(__name__)
 
 bert_model = BertModel.from_pretrained("bert-base-uncased", output_hidden_states=True)
 bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+
+def bert_tokenize(sen):
+        return bert_tokenizer.tokenize(sen)
 
 def split(table,
           path,
@@ -581,11 +585,14 @@ class MatchingDataset(data.Dataset):
 
             fields_set = set(fields_dict.values())
             for field in fields_set:
+                #field = data.Field(sequential=True, tokenize=bert_tokenize, pad_token=bert_tokenizer.pad_token,
+                                #init_token=bert_tokenizer.cls_token, eos_token=bert_tokenizer.sep_token)
+                #field.build_vocab(*datasets)
                 if field is not None and field.use_vocab:
                     field.build_vocab(
-                        *datasets)#, vectors=embeddings, cache=embeddings_cache)
-                    field.vocab.stoi = bert_tokenizer.vocab
-                    field.vocab.itos = list(bert_tokenizer.vocab)
+                        *datasets, vectors=embeddings, cache=embeddings_cache)
+                    #field.vocab.stoi = bert_tokenizer.vocab
+                    #field.vocab.itos = list(bert_tokenizer.vocab)
             after_vocab = timer()
             logger.info('Vocab construction time: {}s'.format(after_vocab - after_load))
 
