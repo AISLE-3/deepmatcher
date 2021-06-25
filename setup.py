@@ -25,6 +25,8 @@ long_description = read('README.rst')
 # release on PyPI is out of date and has not been updated in over a year.
 # "fasttextmirror" is a clone of the "fasttext" repository as of June 5 2018 and is hosted
 # at https://github.com/sidharthms/fastText.
+
+# additional requirement: transformers by huggingface for BERT implementation
 setup(
     name='deepmatcher',
     description='A deep learning package for entity matching',
@@ -38,5 +40,5 @@ setup(
     python_requires='>=3.5',
     install_requires=[
         'torch>=1.0', 'tqdm', 'pyprind', 'six', 'Cython', 'torchtext>=0.9',
-        'nltk>=3.2.5', 'fasttext', 'pandas', 'dill', 'scikit-learn'
+        'nltk>=3.2.5', 'fasttext', 'pandas', 'dill', 'scikit-learn', 'transformers'
     ])
