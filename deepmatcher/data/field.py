@@ -95,6 +95,7 @@ class FastTextBinary(vocab.Vectors):
         if not os.path.isfile(path):
             raise RuntimeError('no vectors found at {}'.format(path))
 
+        print("===" + path + "===")
         self.model = fasttext.load_model(path)
         self.dim = len(self['a'])
 

@@ -22,8 +22,12 @@ from ..models.modules import NoMeta, Pool
 from .field import MatchingField
 from .iterator import MatchingIterator
 
+from transformers import BertModel, BertTokenizer
+
 logger = logging.getLogger(__name__)
 
+bert_model = BertModel.from_pretrained("bert-base-uncased", output_hidden_states=True)
+bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
 def split(table,
           path,
@@ -257,13 +261,16 @@ class MatchingDataset(data.Dataset):
         # network to compute word embeddings and take their weighted average.
         field_embed = {}
         embed = {}
+        bert_model = BertModel.from_pretrained("bert-base-uncased", output_hidden_states=True)
+        bert_embeddings = bert_model.get_input_embeddings()
         inv_freq_pool = Pool('inv-freq-avg')
         for name in self.all_text_fields:
             field = self.fields[name]
             if field not in field_embed:
-                vectors_size = field.vocab.vectors.shape
-                embed_layer = nn.Embedding(vectors_size[0], vectors_size[1])
-                embed_layer.weight.data.copy_(field.vocab.vectors)
+                #vectors_size = field.vocab.vectors.shape
+                #embed_layer = nn.Embedding(vectors_size[0], vectors_size[1])
+                embed_layer = nn.Embedding(bert_embeddings.num_embeddings, bert_embeddings.embedding_dim)
+                embed_layer.weight.data.copy_(bert_embeddings.weight)#(field.vocab.vectors)
                 embed_layer.weight.requires_grad = False
                 field_embed[field] = NoMeta(embed_layer)
             embed[name] = field_embed[field]
@@ -279,6 +286,7 @@ class MatchingDataset(data.Dataset):
             title='\nComputing principal components'):
             for name in self.all_text_fields:
                 attr_input = getattr(batch, name)
+                #get bert embeddings
                 embeddings = inv_freq_pool(embed[name](attr_input))
                 attr_embeddings[name].append(embeddings.data.data)
 
@@ -417,6 +425,7 @@ class MatchingDataset(data.Dataset):
             functions) these arguments cannot be serialized and hence will not be checked
             for modifications.
         """
+        
         cached_data = torch.load(cachefile)
         cache_stale_cause = set()
 
@@ -552,9 +561,10 @@ class MatchingDataset(data.Dataset):
                     datasets = MatchingDataset.restore_data(fields, cached_data)
 
             except IOError:
-                pass
+                pass 
 
         if not datasets:
+            print("load datasets...")
             begin = timer()
             dataset_args = {'fields': fields, 'column_naming': column_naming, **kwargs}
             train_data = None if train is None else cls(
@@ -573,7 +583,9 @@ class MatchingDataset(data.Dataset):
             for field in fields_set:
                 if field is not None and field.use_vocab:
                     field.build_vocab(
-                        *datasets, vectors=embeddings, cache=embeddings_cache)
+                        *datasets)#, vectors=embeddings, cache=embeddings_cache)
+                    field.vocab.stoi = bert_tokenizer.vocab
+                    field.vocab.itos = list(bert_tokenizer.vocab)
             after_vocab = timer()
             logger.info('Vocab construction time: {}s'.format(after_vocab - after_load))
 
