@@ -1,3 +1,4 @@
+#from deepmatcher.data.dataset import bert_tokenize
 import gzip
 import logging
 import os
@@ -134,6 +135,7 @@ class MatchingField(data.Field):
     def __init__(self, tokenize='nltk', id=False, **kwargs):
         self.tokenizer_arg = tokenize
         self.is_id = id
+        #self.bert_tokenizer = tokenize
         tokenize = MatchingField._get_tokenizer(tokenize)
         super(MatchingField, self).__init__(tokenize=tokenize, **kwargs)
 
@@ -141,7 +143,7 @@ class MatchingField(data.Field):
     def _get_tokenizer(tokenizer):
         if tokenizer == 'nltk':
             return nltk.word_tokenize
-        return tokenizer
+        return tokenizer.tokenize
 
     def preprocess_args(self):
         attrs = [
@@ -165,8 +167,9 @@ class MatchingField(data.Field):
                 vec_name = vec
                 vec_data = cls._cached_vec_data.get(vec_name)
                 if vec_data is None:
-                    parts = vec_name.split('.')
-                    if parts[0] == 'fasttext':
+                    #parts = vec_name.split('.')
+                    FastTextBinary(language='en', cache=cache)
+                    """ if parts[0] == 'fasttext':
                         if parts[2] == 'bin':
                             vec_data = FastTextBinary(language=parts[1], cache=cache)
                         elif parts[2] == 'vec' and parts[1] == 'wiki':
@@ -174,7 +177,7 @@ class MatchingField(data.Field):
                                 suffix='wiki-news-300d-1M.vec.zip', cache=cache)
                         elif parts[2] == 'vec' and parts[1] == 'crawl':
                             vec_data = FastText(
-                                suffix='crawl-300d-2M.vec.zip', cache=cache)
+                                suffix='crawl-300d-2M.vec.zip', cache=cache) """
                 if vec_data is None:
                     vec_data = vocab.pretrained_aliases[vec_name](cache=cache)
                 cls._cached_vec_data[vec_name] = vec_data
@@ -218,7 +221,57 @@ class MatchingField(data.Field):
     def numericalize(self, arr, *args, **kwargs):
         if not self.is_id:
             return super(MatchingField, self).numericalize(arr, *args, **kwargs)
-        return arr
+            #arr = [self.tokenizer_arg.vocab[x] for x in arr]
+            #arr = [[self.tokenizer_arg.vocab[x] for x in ex] for ex in arr]
+            #arr = [[x for x in ex] for ex in arr]
+            #return torch.tensor(arr).contiguous()
+        return arr 
+
+    """ def numericalize(self, arr, *args, **kwargs):
+        if self.include_lengths and not isinstance(arr, tuple):
+            raise ValueError("Field has include_lengths set to True, but "
+                             "input data is not a tuple of "
+                             "(data batch, batch lengths).")
+        if isinstance(arr, tuple):
+            arr, lengths = arr
+            lengths = torch.tensor(lengths, dtype=self.dtype)
+
+        if self.use_vocab:
+            if self.sequential:
+                arr = [[self.tokenizer_arg.vocab[x if (x!='<<<' and x!='>>>') else '[UNK]'] for x in ex] for ex in arr]
+            else:
+                arr = [self.tokenizer_arg.vocab[x if (x!='<<<' and x!='>>>')  else '[UNK]'] for x in arr]
+
+            if self.postprocessing is not None:
+                arr = self.postprocessing(arr, self.vocab)
+        else:
+            if self.dtype not in self.dtypes:
+                raise ValueError(
+                    "Specified Field dtype {} can not be used with "
+                    "use_vocab=False because we do not know how to numericalize it. "
+                    "Please raise an issue at "
+                    "https://github.com/pytorch/text/issues".format(self.dtype))
+            numericalization_func = self.dtypes[self.dtype]
+            # It doesn't make sense to explicitly coerce to a numeric type if
+            # the data is sequential, since it's unclear how to coerce padding tokens
+            # to a numeric type.
+            if not self.sequential:
+                arr = [numericalization_func(x) if isinstance(x, str)
+                       else x for x in arr]
+            if self.postprocessing is not None:
+                arr = self.postprocessing(arr, None)
+
+        var = torch.tensor(arr, dtype=self.dtype, device=self.device)
+
+        if self.sequential and not self.batch_first:
+            var.t_()
+        if self.sequential:
+            var = var.contiguous()
+
+        if self.include_lengths:
+            return var, lengths
+        return var """
+
 
 
 def reset_vector_cache():

@@ -13,6 +13,7 @@ from . import _utils
 from ..data import MatchingDataset, MatchingIterator
 from ..runner import Runner
 from ..utils import Bunch, tally_parameters
+from transformers import BertModel
 
 logger = logging.getLogger('deepmatcher.core')
 
@@ -364,13 +365,15 @@ class MatchingModel(nn.Module):
     def _reset_embeddings(self, vocabs):
         self.embed = dm.modules.ModuleMap()
         field_vectors = {}
+        bert_model = BertModel.from_pretrained("bert-base-uncased", output_hidden_states=True)
+        bert_embeddings = bert_model.get_input_embeddings()
         for name in self.meta.all_text_fields:
             vectors = vocabs[name].vectors
             if vectors not in field_vectors:
-                vectors_size = vectors.shape
-                embed = nn.Embedding(vectors_size[0], vectors_size[1])
-                embed.weight.data.copy_(vectors)
-                embed.weight.requires_grad = False
+                #vectors_size = vectors.shape
+                embed = nn.Embedding(bert_embeddings.num_embeddings, bert_embeddings.embedding_dim)
+                embed.weight.data.copy_(bert_embeddings.weight)
+                embed.weight.requires_grad = True
                 field_vectors[vectors] = dm.modules.NoMeta(embed)
             self.embed[name] = field_vectors[vectors]
 

@@ -171,6 +171,7 @@ class MatchingDataset(data.Dataset):
                 examples = [make_example(line, fields) for line in
                     pyprind.prog_bar(reader, iterations=lines,
                         title='\nReading and processing data from "' + path + '"')]
+                
 
             super(MatchingDataset, self).__init__(examples, fields, **kwargs)
         else:
@@ -275,7 +276,7 @@ class MatchingDataset(data.Dataset):
                 #embed_layer = nn.Embedding(vectors_size[0], vectors_size[1])
                 embed_layer = nn.Embedding(bert_embeddings.num_embeddings, bert_embeddings.embedding_dim)
                 embed_layer.weight.data.copy_(bert_embeddings.weight)#(field.vocab.vectors)
-                embed_layer.weight.requires_grad = False
+                embed_layer.weight.requires_grad = True
                 field_embed[field] = NoMeta(embed_layer)
             embed[name] = field_embed[field]
 
@@ -542,7 +543,6 @@ class MatchingDataset(data.Dataset):
             Tuple[MatchingDataset]: Datasets for (train, validation, and test) splits in
                 that order, if provided.
         """
-
         fields_dict = dict(fields)
         state_args = {'train_pca': train_pca}
 
@@ -568,7 +568,6 @@ class MatchingDataset(data.Dataset):
                 pass 
 
         if not datasets:
-            print("load datasets...")
             begin = timer()
             dataset_args = {'fields': fields, 'column_naming': column_naming, **kwargs}
             train_data = None if train is None else cls(
@@ -583,16 +582,35 @@ class MatchingDataset(data.Dataset):
             after_load = timer()
             logger.info('Data load took: {}s'.format(after_load - begin))
 
+
             fields_set = set(fields_dict.values())
+            #print(len(fields_set))
+            #print(fields_dict.values())
+            #pad_index = bert_tokenizer.convert_tokens_to_ids(bert_tokenizer.pad_token)
+            #init_index = bert_tokenizer.convert_tokens_to_ids(bert_tokenizer.cls_token)
+            #eos_index = bert_tokenizer.convert_tokens_to_ids(bert_tokenizer.sep_token)
+            #TEXT = data.Field(sequential=True, use_vocab=False, tokenize=bert_tokenizer.encode_plus, pad_token=bert_tokenizer.pad_token,
+                                #init_token=bert_tokenizer.cls_token, eos_token=bert_tokenizer.sep_token)#, pad_token=pad_index,
+                                #init_token=init_index, eos_token=eos_index)
+            #LABEL = data.LabelField()
+            #my_index = 0
             for field in fields_set:
-                #field = data.Field(sequential=True, tokenize=bert_tokenize, pad_token=bert_tokenizer.pad_token,
-                                #init_token=bert_tokenizer.cls_token, eos_token=bert_tokenizer.sep_token)
-                #field.build_vocab(*datasets)
-                if field is not None and field.use_vocab:
-                    field.build_vocab(
-                        *datasets, vectors=embeddings, cache=embeddings_cache)
-                    #field.vocab.stoi = bert_tokenizer.vocab
-                    #field.vocab.itos = list(bert_tokenizer.vocab)
+                #field = MatchingField(sequential=False, use_vocab=False, tokenize=bert_tokenizer.tokenize)#, pad_token=bert_tokenizer.pad_token,
+                                #init_token=bert_tokenizer.cls_token, eos_token=bert_tokenizer.sep_token, unk_token=bert_tokenizer.unk_token)
+                field.build_vocab(*datasets)
+                """ if (my_index == 0):
+                    my_index = my_index + 1
+                    field = TEXT
+                    #field.use_vocab = False
+                else:
+                    field = LABEL """
+                #field = TEXT
+                    #field.use_vocab = True
+                #if field is not None and field.use_vocab:    
+                #field.build_vocab(*datasets)#, vectors=embeddings, cache=embeddings_cache)
+                
+                field.vocab.stoi = bert_tokenizer.vocab
+                field.vocab.itos = list(bert_tokenizer.vocab)
             after_vocab = timer()
             logger.info('Vocab construction time: {}s'.format(after_vocab - after_load))
 

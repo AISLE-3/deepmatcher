@@ -56,8 +56,10 @@ def _make_fields(header, id_attr, label_attr, ignore_columns, lower, tokenize,
     text_field = MatchingField(
         lower=lower,
         tokenize=tokenize,
-        init_token='<<<',
-        eos_token='>>>',
+        init_token='[CLS]',
+        eos_token='[SEP]',
+        pad_token='[PAD]',
+        unk_token='[UNK]',
         batch_first=True,
         include_lengths=include_lengths)
     numeric_field = MatchingField(
@@ -103,7 +105,7 @@ def process(path,
             left_prefix='left_',
             right_prefix='right_',
             use_magellan_convention=False,
-            pca=True):
+            pca=False):
     """Creates dataset objects for multiple splits of a dataset.
 
     This involves the following steps (if data cannot be retrieved from the cache):
@@ -193,7 +195,7 @@ def process(path,
     with io.open(os.path.expanduser(os.path.join(path, a_dataset)), encoding="utf8") as f:
         header = next(unicode_csv_reader(f))
 
-    _maybe_download_nltk_data()
+    #_maybe_download_nltk_data()
     _check_header(header, id_attr, left_prefix, right_prefix, label_attr, ignore_columns)
     fields = _make_fields(header, id_attr, label_attr, ignore_columns, lowercase,
                           tokenize, include_lengths)
@@ -271,7 +273,7 @@ def process_unlabeled(path, trained_model, ignore_columns=None):
             field.vocab = copy.deepcopy(train_info.vocabs[name])
             # Then extend the vocab.
             field.extend_vocab(
-                dataset, vectors=train_info.embeddings, cache=train_info.embeddings_cache)
+                dataset)#, vectors=train_info.embeddings, cache=train_info.embeddings_cache)
 
     dataset.vocabs = {
         name: dataset.fields[name].vocab
