@@ -97,51 +97,51 @@ class DeepMatcherDataset(Dataset):
 		batch['labels'] = AttrTensor(batch['labels'], None, None, None)
 		return batch
 #%%
-df = pd.read_csv('examples/sample_data/itunes-amazon/train.csv')
-df
-#%%
-from text_encoders import HFTextEncoder
-transformer = HFTextEncoder('distilbert-base-uncased', max_length=8)
-#%%
-dataset = DeepMatcherDataset(df, 'label', text_cols=['Song_Name', 'Artist_Name', 'Album_Name', 'Price'], tokenizer=transformer.tokenizer)
-dataloader = DataLoader(dataset, batch_size=2)
-#%%
-for batch in dataloader:
-	break
-print(batch)
-#%%
-# attrs = batch['attrs']
-# for attr in attrs:
-# 	for prefix in attrs[attr]:
-# 		attrs[attr][prefix] = transformer(attrs[attr][prefix])
-# batch
-#%%
-# DeepMatcherDataset.wrap_batch_into_attr_tensors(batch)
-# %%
-from deepmatcher.models.core import MatchingModel
-# %%
-model = MatchingModel(text_encoder=transformer)
-model
-# %%
-# model.initialize(dataset, init_batch=batch)
-# %%
-model.run_train(
-	dataset,
-	dataset,
-	'best.pth',
-	batch_size=4
-)
+# df = pd.read_csv('examples/sample_data/itunes-amazon/train.csv')
+# df
+# #%%
+# from text_encoders import HFTextEncoder
+# transformer = HFTextEncoder('distilbert-base-uncased', max_length=8)
+# #%%
+# dataset = DeepMatcherDataset(df, 'label', text_cols=['Song_Name', 'Artist_Name', 'Album_Name', 'Price'], tokenizer=transformer.tokenizer)
+# dataloader = DataLoader(dataset, batch_size=2)
+# #%%
+# for batch in dataloader:
+# 	break
+# print(batch)
+# #%%
+# # attrs = batch['attrs']
+# # for attr in attrs:
+# # 	for prefix in attrs[attr]:
+# # 		attrs[attr][prefix] = transformer(attrs[attr][prefix])
+# # batch
+# #%%
+# # DeepMatcherDataset.wrap_batch_into_attr_tensors(batch)
 # # %%
-# outputs = torch.Tensor([[-0.8676, -0.5446],
-# [-0.9790, -0.4711],
-# [-0.9707, -0.4761],
-# [-0.7967, -0.5993]])
+# from deepmatcher.models.core import MatchingModel
 # # %%
-# import torch.nn.functional as F
+# model = MatchingModel(text_encoder=transformer)
+# model
 # # %%
-# torch.argmax(F.softmax(outputs, dim=1), 1)
+# # model.initialize(dataset, init_batch=batch)
 # # %%
-# F.cross_entropy(outputs, torch.Tensor([1,1,0,0]).type(torch.LongTensor))
-# # %%
+# model.run_train(
+# 	dataset,
+# 	dataset,
+# 	'best.pth',
+# 	batch_size=4
+# )
+# # # %%
+# # outputs = torch.Tensor([[-0.8676, -0.5446],
+# # [-0.9790, -0.4711],
+# # [-0.9707, -0.4761],
+# # [-0.7967, -0.5993]])
+# # # %%
+# # import torch.nn.functional as F
+# # # %%
+# # torch.argmax(F.softmax(outputs, dim=1), 1)
+# # # %%
+# # F.cross_entropy(outputs, torch.Tensor([1,1,0,0]).type(torch.LongTensor))
+# # # %%
 
-# %%
+# # %%
