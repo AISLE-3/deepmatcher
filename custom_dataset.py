@@ -46,7 +46,7 @@ class DeepMatcherDataset(Dataset):
 
 		self.canonical_text_fields = self.text_cols
 		self.all_text_fields = [prefix + col for col in self.text_cols for prefix in self.prefixes]
-
+		self.text_fields = {col : (self.prefixes[0] + col, self.prefixes[1] + col) for col in self.text_cols}
 		self.use_text = isinstance(self.text_cols, list) and len(self.text_cols) > 0 and isinstance(self.tokenizer, Callable)
 		self.use_image = isinstance(self.image_col, str) and self.image_col != ''
 
@@ -88,26 +88,45 @@ class DeepMatcherDataset(Dataset):
 	
 	@staticmethod
 	def wrap_batch_into_attr_tensors(batch):
-		for attrs in batch['attrs']:
+		for attr in batch['attrs']:
 			for prefix in batch['attrs'][attr]:
 				node = batch['attrs'][attr][prefix]
 				assert type(node) is torch.Tensor
 				batch['attrs'][attr][prefix] = AttrTensor(node, None, None, None)
+
+		assert type(batch['labels']) is torch.Tensor
 		batch['labels'] = AttrTensor(batch['labels'], None, None, None)
+		return batch
+#%%
+df = pd.read_csv('examples/sample_data/itunes-amazon/train.csv')
+df
+#%%
+from text_encoders import HFTextEncoder
+transformer = HFTextEncoder('distilbert-base-uncased', max_length=8)
+#%%
+dataset = DeepMatcherDataset(df, 'label', text_cols=['Song_Name', 'Artist_Name', 'Album_Name', 'Price'], tokenizer=transformer.tokenizer)
+dataloader = DataLoader(dataset, batch_size=2)
+#%%
+for batch in dataloader:
+	break
+print(batch)
+#%%
+# attrs = batch['attrs']
+# for attr in attrs:
+# 	for prefix in attrs[attr]:
+# 		attrs[attr][prefix] = transformer(attrs[attr][prefix])
+# batch
+#%%
+# DeepMatcherDataset.wrap_batch_into_attr_tensors(batch)
 # %%
-# df = pd.read_csv('examples/sample_data/itunes-amazon/train.csv')
-# df
-# #%%
-# from transformers import AutoTokenizer, AutoModel
-# _tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
-# #%%
-# tokenizer = lambda x : _tokenizer(x, return_tensors='pt', padding='max_length', max_length=8, truncation=True)
-# #%%
-# dataset = DeepMatcherDataset(df, 'label', text_cols=['Song_Name', 'Artist_Name', 'Album_Name', 'Price'], tokenizer=tokenizer)
-# dataloader = DataLoader(dataset, batch_size=2, num_workers=2)
-# #%%
-# for batch in dataloader:
-# 	break
-# print(batch)
-# #%%
-# # %%
+from deepmatcher.models.core import MatchingModel
+# %%
+model = MatchingModel(text_encoder=transformer)
+model
+# %%
+model.initialize(dataset, init_batch=batch)
+# %%
+model
+# %%
+model(batch)
+# %%

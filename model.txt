@@ -1,0 +1,934 @@
+MatchingModel(
+  (attr_summarizers): ModuleMap(
+    (Song_Name): Hybrid(
+      (word_contextualizer): RNN(
+        (rnn_groups): ModuleList(
+          (0): GRU(300, 150, batch_first=True, bidirectional=True)
+        )
+        (dropouts): ModuleList(
+          (0): Dropout(p=0, inplace=False)
+        )
+        (bypass_networks): ModuleList(
+          (0): None
+        )
+        (input_dropout): NoMeta(
+          (module): Dropout(p=0, inplace=False)
+        )
+      )
+      (word_comparator): Attention(
+        (alignment_networks): ModuleList(
+          (0): AlignmentNetwork(
+            (transform): Transform(
+              (transforms): ModuleList(
+                (0): Linear(in_features=300, out_features=300, bias=True)
+                (1): Linear(in_features=300, out_features=300, bias=True)
+              )
+              (bypass_networks): ModuleList(
+                (0): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+                (1): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+              )
+            )
+          )
+        )
+        (value_merge): Merge()
+        (comparison_merge): Merge()
+        (comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+            (1): Linear(in_features=300, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+            (1): Bypass(
+              (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+            )
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=2)
+      )
+      (word_aggregator): AttentionWithRNN(
+        (rnn): RNN(
+          (rnn_groups): ModuleList(
+            (0): GRU(300, 150, batch_first=True, bidirectional=True)
+          )
+          (dropouts): ModuleList(
+            (0): Dropout(p=0, inplace=False)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+          (input_dropout): NoMeta(
+            (module): Dropout(p=0, inplace=False)
+          )
+        )
+        (rnn_pool): Pool()
+        (input_context_comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+          )
+        )
+        (scoring_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=300, out_features=1, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=1)
+      )
+    )
+    (Artist_Name): Hybrid(
+      (word_contextualizer): RNN(
+        (rnn_groups): ModuleList(
+          (0): GRU(300, 150, batch_first=True, bidirectional=True)
+        )
+        (dropouts): ModuleList(
+          (0): Dropout(p=0, inplace=False)
+        )
+        (bypass_networks): ModuleList(
+          (0): None
+        )
+        (input_dropout): NoMeta(
+          (module): Dropout(p=0, inplace=False)
+        )
+      )
+      (word_comparator): Attention(
+        (alignment_networks): ModuleList(
+          (0): AlignmentNetwork(
+            (transform): Transform(
+              (transforms): ModuleList(
+                (0): Linear(in_features=300, out_features=300, bias=True)
+                (1): Linear(in_features=300, out_features=300, bias=True)
+              )
+              (bypass_networks): ModuleList(
+                (0): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+                (1): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+              )
+            )
+          )
+        )
+        (value_merge): Merge()
+        (comparison_merge): Merge()
+        (comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+            (1): Linear(in_features=300, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+            (1): Bypass(
+              (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+            )
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=2)
+      )
+      (word_aggregator): AttentionWithRNN(
+        (rnn): RNN(
+          (rnn_groups): ModuleList(
+            (0): GRU(300, 150, batch_first=True, bidirectional=True)
+          )
+          (dropouts): ModuleList(
+            (0): Dropout(p=0, inplace=False)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+          (input_dropout): NoMeta(
+            (module): Dropout(p=0, inplace=False)
+          )
+        )
+        (rnn_pool): Pool()
+        (input_context_comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+          )
+        )
+        (scoring_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=300, out_features=1, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=1)
+      )
+    )
+    (Album_Name): Hybrid(
+      (word_contextualizer): RNN(
+        (rnn_groups): ModuleList(
+          (0): GRU(300, 150, batch_first=True, bidirectional=True)
+        )
+        (dropouts): ModuleList(
+          (0): Dropout(p=0, inplace=False)
+        )
+        (bypass_networks): ModuleList(
+          (0): None
+        )
+        (input_dropout): NoMeta(
+          (module): Dropout(p=0, inplace=False)
+        )
+      )
+      (word_comparator): Attention(
+        (alignment_networks): ModuleList(
+          (0): AlignmentNetwork(
+            (transform): Transform(
+              (transforms): ModuleList(
+                (0): Linear(in_features=300, out_features=300, bias=True)
+                (1): Linear(in_features=300, out_features=300, bias=True)
+              )
+              (bypass_networks): ModuleList(
+                (0): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+                (1): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+              )
+            )
+          )
+        )
+        (value_merge): Merge()
+        (comparison_merge): Merge()
+        (comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+            (1): Linear(in_features=300, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+            (1): Bypass(
+              (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+            )
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=2)
+      )
+      (word_aggregator): AttentionWithRNN(
+        (rnn): RNN(
+          (rnn_groups): ModuleList(
+            (0): GRU(300, 150, batch_first=True, bidirectional=True)
+          )
+          (dropouts): ModuleList(
+            (0): Dropout(p=0, inplace=False)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+          (input_dropout): NoMeta(
+            (module): Dropout(p=0, inplace=False)
+          )
+        )
+        (rnn_pool): Pool()
+        (input_context_comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+          )
+        )
+        (scoring_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=300, out_features=1, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=1)
+      )
+    )
+    (Genre): Hybrid(
+      (word_contextualizer): RNN(
+        (rnn_groups): ModuleList(
+          (0): GRU(300, 150, batch_first=True, bidirectional=True)
+        )
+        (dropouts): ModuleList(
+          (0): Dropout(p=0, inplace=False)
+        )
+        (bypass_networks): ModuleList(
+          (0): None
+        )
+        (input_dropout): NoMeta(
+          (module): Dropout(p=0, inplace=False)
+        )
+      )
+      (word_comparator): Attention(
+        (alignment_networks): ModuleList(
+          (0): AlignmentNetwork(
+            (transform): Transform(
+              (transforms): ModuleList(
+                (0): Linear(in_features=300, out_features=300, bias=True)
+                (1): Linear(in_features=300, out_features=300, bias=True)
+              )
+              (bypass_networks): ModuleList(
+                (0): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+                (1): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+              )
+            )
+          )
+        )
+        (value_merge): Merge()
+        (comparison_merge): Merge()
+        (comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+            (1): Linear(in_features=300, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+            (1): Bypass(
+              (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+            )
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=2)
+      )
+      (word_aggregator): AttentionWithRNN(
+        (rnn): RNN(
+          (rnn_groups): ModuleList(
+            (0): GRU(300, 150, batch_first=True, bidirectional=True)
+          )
+          (dropouts): ModuleList(
+            (0): Dropout(p=0, inplace=False)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+          (input_dropout): NoMeta(
+            (module): Dropout(p=0, inplace=False)
+          )
+        )
+        (rnn_pool): Pool()
+        (input_context_comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+          )
+        )
+        (scoring_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=300, out_features=1, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=1)
+      )
+    )
+    (Price): Hybrid(
+      (word_contextualizer): RNN(
+        (rnn_groups): ModuleList(
+          (0): GRU(300, 150, batch_first=True, bidirectional=True)
+        )
+        (dropouts): ModuleList(
+          (0): Dropout(p=0, inplace=False)
+        )
+        (bypass_networks): ModuleList(
+          (0): None
+        )
+        (input_dropout): NoMeta(
+          (module): Dropout(p=0, inplace=False)
+        )
+      )
+      (word_comparator): Attention(
+        (alignment_networks): ModuleList(
+          (0): AlignmentNetwork(
+            (transform): Transform(
+              (transforms): ModuleList(
+                (0): Linear(in_features=300, out_features=300, bias=True)
+                (1): Linear(in_features=300, out_features=300, bias=True)
+              )
+              (bypass_networks): ModuleList(
+                (0): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+                (1): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+              )
+            )
+          )
+        )
+        (value_merge): Merge()
+        (comparison_merge): Merge()
+        (comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+            (1): Linear(in_features=300, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+            (1): Bypass(
+              (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+            )
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=2)
+      )
+      (word_aggregator): AttentionWithRNN(
+        (rnn): RNN(
+          (rnn_groups): ModuleList(
+            (0): GRU(300, 150, batch_first=True, bidirectional=True)
+          )
+          (dropouts): ModuleList(
+            (0): Dropout(p=0, inplace=False)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+          (input_dropout): NoMeta(
+            (module): Dropout(p=0, inplace=False)
+          )
+        )
+        (rnn_pool): Pool()
+        (input_context_comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+          )
+        )
+        (scoring_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=300, out_features=1, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=1)
+      )
+    )
+    (CopyRight): Hybrid(
+      (word_contextualizer): RNN(
+        (rnn_groups): ModuleList(
+          (0): GRU(300, 150, batch_first=True, bidirectional=True)
+        )
+        (dropouts): ModuleList(
+          (0): Dropout(p=0, inplace=False)
+        )
+        (bypass_networks): ModuleList(
+          (0): None
+        )
+        (input_dropout): NoMeta(
+          (module): Dropout(p=0, inplace=False)
+        )
+      )
+      (word_comparator): Attention(
+        (alignment_networks): ModuleList(
+          (0): AlignmentNetwork(
+            (transform): Transform(
+              (transforms): ModuleList(
+                (0): Linear(in_features=300, out_features=300, bias=True)
+                (1): Linear(in_features=300, out_features=300, bias=True)
+              )
+              (bypass_networks): ModuleList(
+                (0): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+                (1): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+              )
+            )
+          )
+        )
+        (value_merge): Merge()
+        (comparison_merge): Merge()
+        (comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+            (1): Linear(in_features=300, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+            (1): Bypass(
+              (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+            )
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=2)
+      )
+      (word_aggregator): AttentionWithRNN(
+        (rnn): RNN(
+          (rnn_groups): ModuleList(
+            (0): GRU(300, 150, batch_first=True, bidirectional=True)
+          )
+          (dropouts): ModuleList(
+            (0): Dropout(p=0, inplace=False)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+          (input_dropout): NoMeta(
+            (module): Dropout(p=0, inplace=False)
+          )
+        )
+        (rnn_pool): Pool()
+        (input_context_comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+          )
+        )
+        (scoring_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=300, out_features=1, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=1)
+      )
+    )
+    (Time): Hybrid(
+      (word_contextualizer): RNN(
+        (rnn_groups): ModuleList(
+          (0): GRU(300, 150, batch_first=True, bidirectional=True)
+        )
+        (dropouts): ModuleList(
+          (0): Dropout(p=0, inplace=False)
+        )
+        (bypass_networks): ModuleList(
+          (0): None
+        )
+        (input_dropout): NoMeta(
+          (module): Dropout(p=0, inplace=False)
+        )
+      )
+      (word_comparator): Attention(
+        (alignment_networks): ModuleList(
+          (0): AlignmentNetwork(
+            (transform): Transform(
+              (transforms): ModuleList(
+                (0): Linear(in_features=300, out_features=300, bias=True)
+                (1): Linear(in_features=300, out_features=300, bias=True)
+              )
+              (bypass_networks): ModuleList(
+                (0): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+                (1): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+              )
+            )
+          )
+        )
+        (value_merge): Merge()
+        (comparison_merge): Merge()
+        (comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+            (1): Linear(in_features=300, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+            (1): Bypass(
+              (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+            )
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=2)
+      )
+      (word_aggregator): AttentionWithRNN(
+        (rnn): RNN(
+          (rnn_groups): ModuleList(
+            (0): GRU(300, 150, batch_first=True, bidirectional=True)
+          )
+          (dropouts): ModuleList(
+            (0): Dropout(p=0, inplace=False)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+          (input_dropout): NoMeta(
+            (module): Dropout(p=0, inplace=False)
+          )
+        )
+        (rnn_pool): Pool()
+        (input_context_comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+          )
+        )
+        (scoring_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=300, out_features=1, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=1)
+      )
+    )
+    (Released): Hybrid(
+      (word_contextualizer): RNN(
+        (rnn_groups): ModuleList(
+          (0): GRU(300, 150, batch_first=True, bidirectional=True)
+        )
+        (dropouts): ModuleList(
+          (0): Dropout(p=0, inplace=False)
+        )
+        (bypass_networks): ModuleList(
+          (0): None
+        )
+        (input_dropout): NoMeta(
+          (module): Dropout(p=0, inplace=False)
+        )
+      )
+      (word_comparator): Attention(
+        (alignment_networks): ModuleList(
+          (0): AlignmentNetwork(
+            (transform): Transform(
+              (transforms): ModuleList(
+                (0): Linear(in_features=300, out_features=300, bias=True)
+                (1): Linear(in_features=300, out_features=300, bias=True)
+              )
+              (bypass_networks): ModuleList(
+                (0): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+                (1): Bypass(
+                  (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+                )
+              )
+            )
+          )
+        )
+        (value_merge): Merge()
+        (comparison_merge): Merge()
+        (comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+            (1): Linear(in_features=300, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+            (1): Bypass(
+              (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+            )
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=2)
+      )
+      (word_aggregator): AttentionWithRNN(
+        (rnn): RNN(
+          (rnn_groups): ModuleList(
+            (0): GRU(300, 150, batch_first=True, bidirectional=True)
+          )
+          (dropouts): ModuleList(
+            (0): Dropout(p=0, inplace=False)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+          (input_dropout): NoMeta(
+            (module): Dropout(p=0, inplace=False)
+          )
+        )
+        (rnn_pool): Pool()
+        (input_context_comparison_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=600, out_features=300, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): Bypass(
+              (highway_gate): Linear(in_features=600, out_features=300, bias=True)
+            )
+          )
+        )
+        (scoring_network): Transform(
+          (transforms): ModuleList(
+            (0): Linear(in_features=300, out_features=1, bias=True)
+          )
+          (bypass_networks): ModuleList(
+            (0): None
+          )
+        )
+        (input_dropout): Dropout(p=0, inplace=False)
+        (transform_dropout): Dropout(p=0, inplace=False)
+        (score_dropout): Dropout(p=0, inplace=False)
+        (softmax): Softmax(dim=1)
+      )
+    )
+  )
+  (attr_summarizer): Hybrid()
+  (attr_condensors): ModuleMap(
+    (Song_Name): Transform(
+      (transforms): ModuleList(
+        (0): Linear(in_features=300, out_features=50, bias=True)
+      )
+      (bypass_networks): ModuleList(
+        (0): Bypass(
+          (highway_gate): Linear(in_features=300, out_features=50, bias=True)
+        )
+      )
+    )
+    (Artist_Name): Transform(
+      (transforms): ModuleList(
+        (0): Linear(in_features=300, out_features=50, bias=True)
+      )
+      (bypass_networks): ModuleList(
+        (0): Bypass(
+          (highway_gate): Linear(in_features=300, out_features=50, bias=True)
+        )
+      )
+    )
+    (Album_Name): Transform(
+      (transforms): ModuleList(
+        (0): Linear(in_features=300, out_features=50, bias=True)
+      )
+      (bypass_networks): ModuleList(
+        (0): Bypass(
+          (highway_gate): Linear(in_features=300, out_features=50, bias=True)
+        )
+      )
+    )
+    (Genre): Transform(
+      (transforms): ModuleList(
+        (0): Linear(in_features=300, out_features=50, bias=True)
+      )
+      (bypass_networks): ModuleList(
+        (0): Bypass(
+          (highway_gate): Linear(in_features=300, out_features=50, bias=True)
+        )
+      )
+    )
+    (Price): Transform(
+      (transforms): ModuleList(
+        (0): Linear(in_features=300, out_features=50, bias=True)
+      )
+      (bypass_networks): ModuleList(
+        (0): Bypass(
+          (highway_gate): Linear(in_features=300, out_features=50, bias=True)
+        )
+      )
+    )
+    (CopyRight): Transform(
+      (transforms): ModuleList(
+        (0): Linear(in_features=300, out_features=50, bias=True)
+      )
+      (bypass_networks): ModuleList(
+        (0): Bypass(
+          (highway_gate): Linear(in_features=300, out_features=50, bias=True)
+        )
+      )
+    )
+    (Time): Transform(
+      (transforms): ModuleList(
+        (0): Linear(in_features=300, out_features=50, bias=True)
+      )
+      (bypass_networks): ModuleList(
+        (0): Bypass(
+          (highway_gate): Linear(in_features=300, out_features=50, bias=True)
+        )
+      )
+    )
+    (Released): Transform(
+      (transforms): ModuleList(
+        (0): Linear(in_features=300, out_features=50, bias=True)
+      )
+      (bypass_networks): ModuleList(
+        (0): Bypass(
+          (highway_gate): Linear(in_features=300, out_features=50, bias=True)
+        )
+      )
+    )
+  )
+  (attr_comparators): ModuleMap(
+    (Song_Name): Merge()
+    (Artist_Name): Merge()
+    (Album_Name): Merge()
+    (Genre): Merge()
+    (Price): Merge()
+    (CopyRight): Merge()
+    (Time): Merge()
+    (Released): Merge()
+  )
+  (attr_comparator): Merge()
+  (attr_merge): Merge()
+  (classifier): Classifier(
+    (transform): Transform(
+      (transforms): ModuleList(
+        (0): Linear(in_features=1200, out_features=300, bias=True)
+        (1): Linear(in_features=300, out_features=300, bias=True)
+      )
+      (bypass_networks): ModuleList(
+        (0): Bypass(
+          (highway_gate): Linear(in_features=1200, out_features=300, bias=True)
+        )
+        (1): Bypass(
+          (highway_gate): Linear(in_features=300, out_features=300, bias=True)
+        )
+      )
+    )
+    (softmax_transform): Transform(
+      (transforms): ModuleList(
+        (0): Linear(in_features=300, out_features=2, bias=True)
+      )
+      (bypass_networks): ModuleList(
+        (0): None
+      )
+    )
+    (softmax): LogSoftmax(dim=1)
+  )
+  (embed): ModuleMap(
+    (left_Song_Name): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (left_Artist_Name): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (left_Album_Name): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (left_Genre): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (left_Price): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (left_CopyRight): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (left_Time): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (left_Released): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (right_Song_Name): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (right_Artist_Name): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (right_Album_Name): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (right_Genre): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (right_Price): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (right_CopyRight): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (right_Time): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+    (right_Released): NoMeta(
+      (module): Embedding(2228, 300)
+    )
+  )
+)

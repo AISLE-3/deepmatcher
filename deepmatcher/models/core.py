@@ -14,6 +14,8 @@ from ..data import MatchingDataset, MatchingIterator
 from ..runner import Runner
 from ..utils import Bunch, tally_parameters
 
+from ..batch import AttrTensor
+
 logger = logging.getLogger('deepmatcher.core')
 
 
@@ -82,15 +84,17 @@ class MatchingModel(nn.Module):
     """
 
     def __init__(self,
-                 attr_summarizer='hybrid',
-                 attr_condense_factor='auto',
-                 attr_comparator=None,
-                 attr_merge='concat',
-                 classifier='2-layer-highway',
-                 hidden_size=300):
+                text_encoder=None,
+                attr_summarizer='hybrid',
+                attr_condense_factor='auto',
+                attr_comparator=None,
+                attr_merge='concat',
+                classifier='2-layer-highway',
+                hidden_size=300):
 
         super(MatchingModel, self).__init__()
 
+        self.text_encoder = text_encoder
         self.attr_summarizer = attr_summarizer
         self.attr_condense_factor = attr_condense_factor
         self.attr_comparator = attr_comparator
@@ -280,25 +284,23 @@ class MatchingModel(nn.Module):
         # Copy over training info from train set for persistent state. But remove actual
         # data examples.
         self.meta = Bunch(**train_dataset.__dict__)
-        if hasattr(self.meta, 'fields'):
-            del self.meta.fields
-            del self.meta.examples
+        # if hasattr(self.meta, 'fields'):
+        #     del self.meta.fields
+        #     del self.meta.examples
 
-        self._register_train_buffer('state_meta', Bunch(**self.meta.__dict__))
-        del self.state_meta.metadata  # we only need `self.meta.orig_metadata` for state.
+        # self._register_train_buffer('state_meta', Bunch(**self.meta.__dict__))
+        # del self.state_meta.metadata  # we only need `self.meta.orig_metadata` for state.
 
         self.attr_summarizers = dm.modules.ModuleMap()
         if isinstance(self.attr_summarizer, Mapping):
             for name, summarizer in self.attr_summarizer.items():
-                self.attr_summarizers[name] = AttrSummarizer._create(
-                    summarizer, hidden_size=self.hidden_size)
-            assert len(
-                set(self.attr_summarizers.keys()) ^ set(self.meta.canonical_text_fields)
-            ) == 0
+                self.attr_summarizers[name] = AttrSummarizer._create(summarizer, hidden_size=self.hidden_size)
+            assert len(set(self.attr_summarizers.keys()) ^ set(self.meta.canonical_text_fields)) == 0
         else:
-            self.attr_summarizer = AttrSummarizer._create(
-                self.attr_summarizer, hidden_size=self.hidden_size)
+            print('creating summarizers')
+            self.attr_summarizer = AttrSummarizer._create(self.attr_summarizer, hidden_size=self.hidden_size)
             for name in self.meta.canonical_text_fields:
+                print(name)
                 self.attr_summarizers[name] = copy.deepcopy(self.attr_summarizer)
 
         if self.attr_condense_factor == 'auto':
@@ -320,13 +322,10 @@ class MatchingModel(nn.Module):
         if isinstance(self.attr_comparator, Mapping):
             for name, comparator in self.attr_comparator.items():
                 self.attr_comparators[name] = _create_attr_comparator(comparator)
-            assert len(
-                set(self.attr_comparators.keys()) ^ set(self.meta.canonical_text_fields)
-            ) == 0
+            assert len(set(self.attr_comparators.keys()) ^ set(self.meta.canonical_text_fields)) == 0
         else:
             if isinstance(self.attr_summarizer, AttrSummarizer):
-                self.attr_comparator = self._get_attr_comparator(
-                    self.attr_comparator, self.attr_summarizer)
+                self.attr_comparator = self._get_attr_comparator(self.attr_comparator, self.attr_summarizer)
             else:
                 if self.attr_comparator is None:
                     raise ValueError('"attr_comparator" must be specified if '
@@ -337,10 +336,9 @@ class MatchingModel(nn.Module):
                 self.attr_comparators[name] = copy.deepcopy(self.attr_comparator)
 
         self.attr_merge = dm.modules._merge_module(self.attr_merge)
-        self.classifier = _utils.get_module(
-            Classifier, self.classifier, hidden_size=self.hidden_size)
+        self.classifier = _utils.get_module(Classifier, self.classifier, hidden_size=self.hidden_size)
 
-        self._reset_embeddings(train_dataset.vocabs)
+        # self._reset_embeddings(train_dataset.vocabs)
 
         # Instantiate all components using a small batch from training set.
         if not init_batch:
@@ -355,7 +353,7 @@ class MatchingModel(nn.Module):
         self.forward(init_batch)
 
         # Keep this init_batch for future initializations.
-        self.state_meta.init_batch = init_batch
+        # self.state_meta.init_batch = init_batch
 
         self._initialized = True
         logger.info('Successfully initialized MatchingModel with {:d} trainable '
@@ -414,15 +412,22 @@ class MatchingModel(nn.Module):
                 processed into tensors.
         """
         embeddings = {}
-        for name in self.meta.all_text_fields:
-            attr_input = getattr(input, name)
-            embeddings[name] = self.embed[name](attr_input)
+        # for name in self.meta.all_text_fields:
+        #     attr_input = getattr(input, name)
+        #     embeddings[name] = self.embed[name](attr_input)
+        input_attrs = input['attrs']
+        labels = input['labels']
+
+        for attr in input_attrs:
+            for prefix in input_attrs[attr]:
+                embeddings[prefix + attr] = AttrTensor(self.text_encoder(input_attrs[attr][prefix]), None, None, None)
+        print(embeddings)
 
         attr_comparisons = []
         for name in self.meta.canonical_text_fields:
             left, right = self.meta.text_fields[name]
-            left_summary, right_summary = self.attr_summarizers[name](embeddings[left],
-                                                                      embeddings[right])
+            # left_summary, right_summary = self.attr_summarizers[name](embeddings[left], embeddings[right])
+            left_summary, right_summary = embeddings[left], embeddings[right]
 
             # Remove metadata information at this point.
             left_summary, right_summary = left_summary.data, right_summary.data
@@ -481,7 +486,6 @@ class MatchingModel(nn.Module):
             self.initialize(train_info, self.state_meta.init_batch)
 
         self.load_state_dict(state['model'])
-
 
 class AttrSummarizer(dm.modules.LazyModule):
     r"""__init__(word_contextualizer, word_comparator, word_aggregator, hidden_size=None)
