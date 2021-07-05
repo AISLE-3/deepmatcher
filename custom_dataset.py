@@ -70,6 +70,7 @@ class DeepMatcherDataset(Dataset):
 		attrs_data = defaultdict(dict)
 		if self.use_text:
 			texts = [(col, prefix, self.data_df.at[idx, prefix + col]) for col in self.text_cols for prefix in self.prefixes]
+			print(texts)
 			tokenized = self.tokenizer([t[-1] for t in texts])
 			for i, (col, prefix, _) in enumerate(texts):
 				attrs_data[col][prefix] = {k: tokenized[k][i] for k in tokenized}
@@ -85,7 +86,28 @@ class DeepMatcherDataset(Dataset):
 			'labels': int(self.data_df.at[idx, self.label_col])
 		}
 	
-	def wrap_tensors_into_attr_tensor(self, pt_tensor):
-		return AttrTensor(pt_tensor, pt_tensor.lengths, None, None)
+	@staticmethod
+	def wrap_batch_into_attr_tensors(batch):
+		for attrs in batch['attrs']:
+			for prefix in batch['attrs'][attr]:
+				node = batch['attrs'][attr][prefix]
+				assert type(node) is torch.Tensor
+				batch['attrs'][attr][prefix] = AttrTensor(node, None, None, None)
+		batch['labels'] = AttrTensor(batch['labels'], None, None, None)
 # %%
-
+# df = pd.read_csv('examples/sample_data/itunes-amazon/train.csv')
+# df
+# #%%
+# from transformers import AutoTokenizer, AutoModel
+# _tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
+# #%%
+# tokenizer = lambda x : _tokenizer(x, return_tensors='pt', padding='max_length', max_length=8, truncation=True)
+# #%%
+# dataset = DeepMatcherDataset(df, 'label', text_cols=['Song_Name', 'Artist_Name', 'Album_Name', 'Price'], tokenizer=tokenizer)
+# dataloader = DataLoader(dataset, batch_size=2, num_workers=2)
+# #%%
+# for batch in dataloader:
+# 	break
+# print(batch)
+# #%%
+# # %%
