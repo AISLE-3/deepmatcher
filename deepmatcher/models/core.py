@@ -297,10 +297,8 @@ class MatchingModel(nn.Module):
                 self.attr_summarizers[name] = AttrSummarizer._create(summarizer, hidden_size=self.hidden_size)
             assert len(set(self.attr_summarizers.keys()) ^ set(self.meta.canonical_text_fields)) == 0
         else:
-            print('creating summarizers')
             self.attr_summarizer = AttrSummarizer._create(self.attr_summarizer, hidden_size=self.hidden_size)
             for name in self.meta.canonical_text_fields:
-                print(name)
                 self.attr_summarizers[name] = copy.deepcopy(self.attr_summarizer)
 
         if self.attr_condense_factor == 'auto':
@@ -415,13 +413,11 @@ class MatchingModel(nn.Module):
         # for name in self.meta.all_text_fields:
         #     attr_input = getattr(input, name)
         #     embeddings[name] = self.embed[name](attr_input)
-        input_attrs = input['attrs']
-        labels = input['labels']
-
-        for attr in input_attrs:
-            for prefix in input_attrs[attr]:
-                embeddings[prefix + attr] = AttrTensor(self.text_encoder(input_attrs[attr][prefix]), None, None, None)
-        print(embeddings)
+        for attr in input:
+            for prefix in input[attr]:
+                token = self.text_encoder(input[attr][prefix])
+                # token = AttrTensor(token, None, None, None)
+                embeddings[prefix + attr] = token
 
         attr_comparisons = []
         for name in self.meta.canonical_text_fields:

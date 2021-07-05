@@ -70,7 +70,6 @@ class DeepMatcherDataset(Dataset):
 		attrs_data = defaultdict(dict)
 		if self.use_text:
 			texts = [(col, prefix, self.data_df.at[idx, prefix + col]) for col in self.text_cols for prefix in self.prefixes]
-			print(texts)
 			tokenized = self.tokenizer([t[-1] for t in texts])
 			for i, (col, prefix, _) in enumerate(texts):
 				attrs_data[col][prefix] = {k: tokenized[k][i] for k in tokenized}
@@ -124,9 +123,25 @@ from deepmatcher.models.core import MatchingModel
 model = MatchingModel(text_encoder=transformer)
 model
 # %%
-model.initialize(dataset, init_batch=batch)
+# model.initialize(dataset, init_batch=batch)
 # %%
-model
-# %%
-model(batch)
+model.run_train(
+	dataset,
+	dataset,
+	'best.pth',
+	batch_size=4
+)
+# # %%
+# outputs = torch.Tensor([[-0.8676, -0.5446],
+# [-0.9790, -0.4711],
+# [-0.9707, -0.4761],
+# [-0.7967, -0.5993]])
+# # %%
+# import torch.nn.functional as F
+# # %%
+# torch.argmax(F.softmax(outputs, dim=1), 1)
+# # %%
+# F.cross_entropy(outputs, torch.Tensor([1,1,0,0]).type(torch.LongTensor))
+# # %%
+
 # %%

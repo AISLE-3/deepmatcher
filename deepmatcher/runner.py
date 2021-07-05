@@ -11,9 +11,10 @@ import pyprind
 import torch
 from tqdm import tqdm
 
-from .data import MatchingIterator
+# from .data import MatchingIterator
 from .optim import Optimizer, SoftNLLLoss
 from .utils import tally_parameters
+from torch.utils.data import DataLoader
 
 try:
     get_ipython
@@ -163,13 +164,16 @@ class Runner(object):
             device = 'cuda'
 
         sort_in_buckets = train
-        run_iter = MatchingIterator(
-            dataset,
-            model.meta,
-            train,
-            batch_size=batch_size,
-            device=device,
-            sort_in_buckets=sort_in_buckets)
+
+        # run_iter = MatchingIterator(
+        #     dataset,
+        #     model.meta,
+        #     train,
+        #     batch_size=batch_size,
+        #     device=device,
+        #     sort_in_buckets=sort_in_buckets)
+        
+        run_iter = DataLoader(dataset, batch_size=batch_size, num_workers=1, shuffle=True)
 
         model = model.to(device)
         if criterion:
@@ -186,8 +190,8 @@ class Runner(object):
         cum_stats = Statistics()
         stats = Statistics()
         predictions = []
-        id_attr = model.meta.id_field
-        label_attr = model.meta.label_field
+        # id_attr = model.meta.id_field
+        # label_attr = model.meta.label_field
 
         if train and epoch == 0:
             print('* Number of trainable parameters:', tally_parameters(model))
@@ -211,20 +215,30 @@ class Runner(object):
             batch_start = time.time()
             datatime += batch_start - batch_end
 
-            output = model(batch)
+            attrs = batch['attrs']
+            for attr in attrs:
+                for prefix in attrs[attr]:
+                    for k, v in attrs[attr][prefix].items():
+                        attrs[attr][prefix][k] = v.to(device)
+            labels = batch['labels'].to(device)
+            # print('labels', labels)
+
+            output = model(attrs)
 
             # from torchviz import make_dot, make_dot_from_trace
             # dot = make_dot(output.mean(), params=dict(model.named_parameters()))
             # pdb.set_trace()
-
+            # print('output', output)
             loss = float('NaN')
             if criterion:
-                loss = criterion(output, getattr(batch, label_attr))
+                loss = criterion(output, labels)
+            # print('loss', loss)
 
-            if hasattr(batch, label_attr):
-                scores = Runner._compute_scores(output, getattr(batch, label_attr))
+            if 'labels' in batch:
+                scores = Runner._compute_scores(output, labels)
             else:
                 scores = [0] * 4
+            # print('scores', scores)
 
             cum_stats.update(float(loss), *scores)
             stats.update(float(loss), *scores)
@@ -294,8 +308,12 @@ class Runner(object):
         Returns:
             float: The best F1 score obtained by the model on the validation dataset.
         """
-
-        model.initialize(train_dataset)
+        
+        
+        ## initialize using an init batch
+        dataloader = DataLoader(train_dataset, batch_size=2, num_workers=0)
+        init_batch = next(iter(dataloader))['attrs']
+        model.initialize(train_dataset, init_batch=init_batch)
 
         model._register_train_buffer('optimizer_state', None)
         model._register_train_buffer('best_score', None)
@@ -317,8 +335,7 @@ class Runner(object):
 
             neg_weight = 2 - pos_weight
 
-            criterion = SoftNLLLoss(label_smoothing,
-                                    torch.Tensor([neg_weight, pos_weight]))
+            criterion = SoftNLLLoss(label_smoothing, torch.Tensor([neg_weight, pos_weight]))
 
         optimizer = optimizer or Optimizer()
         if model.optimizer_state is not None:
