@@ -4,7 +4,6 @@ import torch
 
 AttrTensor_ = namedtuple('AttrTensor', ['data', 'lengths', 'word_probs', 'pc'])
 
-
 class AttrTensor(AttrTensor_):
     """A wrapper around the batch tensor for a specific attribute.
 
