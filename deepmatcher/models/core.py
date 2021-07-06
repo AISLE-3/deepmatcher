@@ -291,15 +291,15 @@ class MatchingModel(nn.Module):
         # self._register_train_buffer('state_meta', Bunch(**self.meta.__dict__))
         # del self.state_meta.metadata  # we only need `self.meta.orig_metadata` for state.
 
-        self.attr_summarizers = dm.modules.ModuleMap()
-        if isinstance(self.attr_summarizer, Mapping):
-            for name, summarizer in self.attr_summarizer.items():
-                self.attr_summarizers[name] = AttrSummarizer._create(summarizer, hidden_size=self.hidden_size)
-            assert len(set(self.attr_summarizers.keys()) ^ set(self.meta.canonical_text_fields)) == 0
-        else:
-            self.attr_summarizer = AttrSummarizer._create(self.attr_summarizer, hidden_size=self.hidden_size)
-            for name in self.meta.canonical_text_fields:
-                self.attr_summarizers[name] = copy.deepcopy(self.attr_summarizer)
+        # self.attr_summarizers = dm.modules.ModuleMap()
+        # if isinstance(self.attr_summarizer, Mapping):
+        #     for name, summarizer in self.attr_summarizer.items():
+        #         self.attr_summarizers[name] = AttrSummarizer._create(summarizer, hidden_size=self.hidden_size)
+        #     assert len(set(self.attr_summarizers.keys()) ^ set(self.meta.canonical_text_fields)) == 0
+        # else:
+        #     self.attr_summarizer = AttrSummarizer._create(self.attr_summarizer, hidden_size=self.hidden_size)
+        #     for name in self.meta.canonical_text_fields:
+        #         self.attr_summarizers[name] = copy.deepcopy(self.attr_summarizer)
 
         if self.attr_condense_factor == 'auto':
             self.attr_condense_factor = min(len(self.meta.canonical_text_fields), 6)
@@ -422,7 +422,6 @@ class MatchingModel(nn.Module):
         attr_comparisons = []
         for name in self.meta.canonical_text_fields:
             left, right = self.meta.text_fields[name]
-            # left_summary, right_summary = self.attr_summarizers[name](embeddings[left], embeddings[right])
             left_summary, right_summary = embeddings[left], embeddings[right]
 
             # Remove metadata information at this point.

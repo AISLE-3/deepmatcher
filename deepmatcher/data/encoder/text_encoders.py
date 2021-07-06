@@ -1,8 +1,8 @@
-#%%
+
 import torch
 from torch import nn
 from transformers import AutoTokenizer, AutoModel
-#%%
+
 class HFTextEncoder(nn.Module):
 	def __init__(self, identifier : str, trainable : bool = False, seqtovec : str = 'cls', max_length=64, padding='max_length', truncation=True):
 		super().__init__()
@@ -15,6 +15,9 @@ class HFTextEncoder(nn.Module):
 		self.max_length = max_length
 		self.padding = padding
 		self.truncation = truncation
+		if not trainable:
+			for param in self.model.parameters():
+				param.requires_grad = False
 
 	def tokenizer(self, texts):
 		texts = [str(text) for text in texts]
@@ -26,14 +29,3 @@ class HFTextEncoder(nn.Module):
 			return outputs[:, self.cls_token_idx, :]
 		else:
 			return outputs
-
-# from sentence_transformers import SentenceTransformer
-# class STTextEncoder(nn.Module):
-# 	def __init__(self, identifier : str):
-# 		super().__init__()
-# 		self.model_identifier = identifier
-# 		self.model = SentenceTransformer(self.model_identifier)
-# 		self.embedding_dim = 768 # TODO: get from SentenceTransformer
-	
-# 	def forward(self, texts):
-# 		return self.model.forward(texts)

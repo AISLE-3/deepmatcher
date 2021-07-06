@@ -3,3 +3,4 @@
 deepmatcher.egg-info/*
 examples/.ipynb_checkpoints/*
 docs/build
+.ipynb_checkpoints

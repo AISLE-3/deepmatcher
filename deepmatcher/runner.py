@@ -163,17 +163,7 @@ class Runner(object):
         elif device == 'gpu':
             device = 'cuda'
 
-        sort_in_buckets = train
-
-        # run_iter = MatchingIterator(
-        #     dataset,
-        #     model.meta,
-        #     train,
-        #     batch_size=batch_size,
-        #     device=device,
-        #     sort_in_buckets=sort_in_buckets)
-        
-        run_iter = DataLoader(dataset, batch_size=batch_size, num_workers=1, shuffle=True)
+        run_iter = DataLoader(dataset, batch_size=batch_size, num_workers=0, shuffle=True)
 
         model = model.to(device)
         if criterion:
@@ -308,7 +298,6 @@ class Runner(object):
         Returns:
             float: The best F1 score obtained by the model on the validation dataset.
         """
-        
         
         ## initialize using an init batch
         dataloader = DataLoader(train_dataset, batch_size=2, num_workers=0)
