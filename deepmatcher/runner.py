@@ -144,7 +144,7 @@ class Runner(object):
     @staticmethod
     def _run(run_type,
              model,
-             dataset,
+             dataloader,
              criterion=None,
              optimizer=None,
              train=False,
@@ -162,8 +162,6 @@ class Runner(object):
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
         elif device == 'gpu':
             device = 'cuda'
-
-        run_iter = DataLoader(dataset, batch_size=batch_size, num_workers=0, shuffle=True)
 
         model = model.to(device)
         if criterion:
@@ -193,15 +191,15 @@ class Runner(object):
         # The tqdm-bar for Jupyter notebook is under development.
         if progress_style == 'tqdm-bar':
             pbar = tqdm(
-                total=len(run_iter) // log_freq,
+                total=len(dataloader) // log_freq,
                 bar_format='{l_bar}{bar}{postfix}',
                 file=sys.stdout)
 
         # Use the pyprind bar as the default progress bar.
         if progress_style == 'bar':
-            pbar = pyprind.ProgBar(len(run_iter) // log_freq, bar_char='█', width=30)
+            pbar = pyprind.ProgBar(len(dataloader) // log_freq, bar_char='█', width=30)
 
-        for batch_idx, batch in enumerate(run_iter):
+        for batch_idx, batch in enumerate(dataloader):
             batch_start = time.time()
             datatime += batch_start - batch_end
 
@@ -239,7 +237,7 @@ class Runner(object):
 
             if (batch_idx + 1) % log_freq == 0:
                 if progress_style == 'log':
-                    Runner._print_stats(run_type, epoch + 1, batch_idx + 1, len(run_iter),
+                    Runner._print_stats(run_type, epoch + 1, batch_idx + 1, len(dataloader),
                                         stats, cum_stats)
                 elif progress_style == 'tqdm-bar':
                     pbar.update()
@@ -273,8 +271,8 @@ class Runner(object):
 
     @staticmethod
     def train(model,
-              train_dataset,
-              validation_dataset,
+              train_dataloader,
+              validation_dataloader,
               best_save_path,
               epochs=30,
               criterion=None,
@@ -300,9 +298,8 @@ class Runner(object):
         """
         
         ## initialize using an init batch
-        dataloader = DataLoader(train_dataset, batch_size=2, num_workers=0)
-        init_batch = next(iter(dataloader))['attrs']
-        model.initialize(train_dataset, init_batch=init_batch)
+        init_batch = next(iter(train_dataloader))['attrs']
+        model.initialize(init_batch)
 
         model._register_train_buffer('optimizer_state', None)
         model._register_train_buffer('best_score', None)
@@ -342,9 +339,9 @@ class Runner(object):
         for epoch in epochs_range:
             model.epoch = epoch
             Runner._run(
-                'TRAIN', model, train_dataset, criterion, optimizer, train=True, **kwargs)
+                'TRAIN', model, train_dataloader, criterion, optimizer, train=True, **kwargs)
 
-            score = Runner._run('EVAL', model, validation_dataset, train=False, **kwargs)
+            score = Runner._run('EVAL', model, validation_dataloader, train=False, **kwargs)
 
             optimizer.update_learning_rate(score, epoch + 1)
             model.optimizer_state = optimizer.base_optimizer.state_dict()
@@ -374,7 +371,7 @@ class Runner(object):
 
         return model.best_score
 
-    def eval(model, dataset, **kwargs):
+    def eval(model, dataloader, **kwargs):
         """eval(model, dataset, device=None, batch_size=32, progress_style='bar', log_freq=5,
             sort_in_buckets=None)
 
@@ -385,7 +382,7 @@ class Runner(object):
         Returns:
             float: The F1 score obtained by the model on the dataset.
         """
-        return Runner._run('EVAL', model, dataset, **kwargs)
+        return Runner._run('EVAL', model, dataloader, **kwargs)
 
     def predict(model, dataset, output_attributes=False, **kwargs):
         """predict(model, dataset, output_attributes=False, device=None, batch_size=32, \

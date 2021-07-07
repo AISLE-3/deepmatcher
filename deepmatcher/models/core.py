@@ -85,12 +85,17 @@ class MatchingModel(nn.Module):
 
     def __init__(self,
                 text_encoder=None,
+                image_encoder=None,
                 attr_summarizer='hybrid',
                 attr_condense_factor='auto',
                 attr_comparator=None,
                 attr_merge='concat',
                 classifier='2-layer-highway',
-                hidden_size=300):
+                hidden_size=300,
+                text_attrs : list = [],
+                image_attr : str = '',
+                prefixes : tuple = ('left_', 'right_')
+                ):
 
         super(MatchingModel, self).__init__()
 
@@ -104,6 +109,24 @@ class MatchingModel(nn.Module):
         self.hidden_size = hidden_size
         self._train_buffers = set()
         self._initialized = False
+
+        if len(text_attrs):
+            assert text_encoder
+        if image_attr:
+            assert image_encoder
+
+        self.text_attrs = text_attrs
+        self.image_attr = image_attr
+        self.prefixes = prefixes
+        print('text_attrs:', self.text_attrs)
+        print('image_attr:', self.image_attr)
+        print('prefixes:', self.prefixes)
+
+        self.attrs = [attr for attr in [*self.text_attrs, self.image_attr] if attr]
+        print('attrs:', self.attrs)
+        self.all_attrs = [prefix + attr for attr in self.attrs for prefix in self.prefixes]
+        print('all attrs:', self.all_attrs)
+        self.attr_map = {attr : (self.prefixes[0] + attr, self.prefixes[1] + attr) for attr in self.attrs}
 
     def run_train(self, *args, **kwargs):
         """run_train(train_dataset, validation_dataset, best_save_path,epochs=30, \
@@ -265,14 +288,12 @@ class MatchingModel(nn.Module):
         """
         return Runner.predict(self, *args, **kwargs)
 
-    def initialize(self, train_dataset, init_batch=None):
+    def initialize(self, init_batch):
         r"""Initialize (not lazily) the matching model given the actual training data.
 
         Instantiates all sub-components and their trainable parameters.
 
         Args:
-            train_dataset (:class:`~deepmatcher.data.MatchingDataset`):
-                The training dataset obtained using :func:`deepmatcher.data.process`.
             init_batch (:class:`~deepmatcher.batch.MatchingBatch`):
                 A batch of data to forward propagate through the model. If None, a batch
                 is drawn from the training dataset.
@@ -281,28 +302,8 @@ class MatchingModel(nn.Module):
         if self._initialized:
             return
 
-        # Copy over training info from train set for persistent state. But remove actual
-        # data examples.
-        self.meta = Bunch(**train_dataset.__dict__)
-        # if hasattr(self.meta, 'fields'):
-        #     del self.meta.fields
-        #     del self.meta.examples
-
-        # self._register_train_buffer('state_meta', Bunch(**self.meta.__dict__))
-        # del self.state_meta.metadata  # we only need `self.meta.orig_metadata` for state.
-
-        # self.attr_summarizers = dm.modules.ModuleMap()
-        # if isinstance(self.attr_summarizer, Mapping):
-        #     for name, summarizer in self.attr_summarizer.items():
-        #         self.attr_summarizers[name] = AttrSummarizer._create(summarizer, hidden_size=self.hidden_size)
-        #     assert len(set(self.attr_summarizers.keys()) ^ set(self.meta.canonical_text_fields)) == 0
-        # else:
-        #     self.attr_summarizer = AttrSummarizer._create(self.attr_summarizer, hidden_size=self.hidden_size)
-        #     for name in self.meta.canonical_text_fields:
-        #         self.attr_summarizers[name] = copy.deepcopy(self.attr_summarizer)
-
         if self.attr_condense_factor == 'auto':
-            self.attr_condense_factor = min(len(self.meta.canonical_text_fields), 6)
+            self.attr_condense_factor = min(len(self.attrs), 6)
             if self.attr_condense_factor == 1:
                 self.attr_condense_factor = None
 
@@ -310,7 +311,7 @@ class MatchingModel(nn.Module):
             self.attr_condensors = None
         else:
             self.attr_condensors = dm.modules.ModuleMap()
-            for name in self.meta.canonical_text_fields:
+            for name in self.attrs:
                 self.attr_condensors[name] = dm.modules.Transform(
                     '1-layer-highway',
                     non_linearity=None,
@@ -320,7 +321,7 @@ class MatchingModel(nn.Module):
         if isinstance(self.attr_comparator, Mapping):
             for name, comparator in self.attr_comparator.items():
                 self.attr_comparators[name] = _create_attr_comparator(comparator)
-            assert len(set(self.attr_comparators.keys()) ^ set(self.meta.canonical_text_fields)) == 0
+            assert len(set(self.attr_comparators.keys()) ^ set(self.attrs)) == 0
         else:
             if isinstance(self.attr_summarizer, AttrSummarizer):
                 self.attr_comparator = self._get_attr_comparator(self.attr_comparator, self.attr_summarizer)
@@ -330,7 +331,7 @@ class MatchingModel(nn.Module):
                                      '"attr_summarizer" is custom.')
 
             self.attr_comparator = _create_attr_comparator(self.attr_comparator)
-            for name in self.meta.canonical_text_fields:
+            for name in self.attrs:
                 self.attr_comparators[name] = copy.deepcopy(self.attr_comparator)
 
         self.attr_merge = dm.modules._merge_module(self.attr_merge)
@@ -410,18 +411,17 @@ class MatchingModel(nn.Module):
                 processed into tensors.
         """
         embeddings = {}
-        # for name in self.meta.all_text_fields:
-        #     attr_input = getattr(input, name)
-        #     embeddings[name] = self.embed[name](attr_input)
-        for attr in input:
-            for prefix in input[attr]:
+        for attr in self.text_attrs:
+            for prefix in self.prefixes:
                 token = self.text_encoder(input[attr][prefix])
-                # token = AttrTensor(token, None, None, None)
                 embeddings[prefix + attr] = token
+        if self.image_attr and self.image_attr in input:
+            for prefix in self.prefixes:
+                embeddings[prefix + attr] = self.image_encoder(input[attr][prefix])
 
         attr_comparisons = []
-        for name in self.meta.canonical_text_fields:
-            left, right = self.meta.text_fields[name]
+        for name in self.attrs:
+            left, right = self.attr_map[name]
             left_summary, right_summary = embeddings[left], embeddings[right]
 
             # Remove metadata information at this point.
@@ -430,8 +430,7 @@ class MatchingModel(nn.Module):
             if self.attr_condensors:
                 left_summary = self.attr_condensors[name](left_summary)
                 right_summary = self.attr_condensors[name](right_summary)
-            attr_comparisons.append(self.attr_comparators[name](left_summary,
-                                                                right_summary))
+            attr_comparisons.append(self.attr_comparators[name](left_summary, right_summary))
 
         entity_comparison = self.attr_merge(*attr_comparisons)
         return self.classifier(entity_comparison)
