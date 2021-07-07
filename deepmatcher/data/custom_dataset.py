@@ -48,7 +48,7 @@ class DeepMatcherDataset(Dataset):
 	def read_image(self, idx, col):
 		fimg = os.path.join(self.images_dir, self.data_df.at[idx, col])
 		img = cv2.cvtColor(cv2.imread(fimg, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
-		img = cv2.resize(img, self.image_size, interpolate=cv2.INTER_LINEAR)
+		img = cv2.resize(img, self.image_size, interpolation=cv2.INTER_LINEAR)
 		return img
 
 	def __len__(self):
@@ -61,8 +61,8 @@ class DeepMatcherDataset(Dataset):
 				for prefix in self.prefixes:
 					attrs_data[col][prefix] = self.data_df.at[idx, prefix + col]
 		if self.use_image:
-			for prefix in enumerate(self.prefixes):
-				attrs_data[self.image_col][self.prefixes[i]] = self.read_image(idx, self.prefixes[i] + self.image_col)
+			for prefix in self.prefixes:
+				attrs_data[self.image_col][prefix] = self.data_df.at[idx, prefix + self.image_col]
 		return {
 			'attrs': attrs_data,
 			'labels': int(self.data_df.at[idx, self.label_col])

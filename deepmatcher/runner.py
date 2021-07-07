@@ -164,6 +164,8 @@ class Runner(object):
             device = 'cuda'
 
         model = model.to(device)
+        model.device = device
+
         if criterion:
             criterion = criterion.to(device)
 
@@ -206,10 +208,10 @@ class Runner(object):
             attrs = batch['attrs']
             for attr in attrs:
                 for prefix in attrs[attr]:
-                    for k, v in attrs[attr][prefix].items():
-                        attrs[attr][prefix][k] = v.to(device)
+                    if type(attrs[attr][prefix]) == dict:
+                        for k, v in attrs[attr][prefix].items():
+                            attrs[attr][prefix][k] = v.to(device)
             labels = batch['labels'].to(device)
-            # print('labels', labels)
 
             output = model(attrs)
 

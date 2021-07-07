@@ -94,12 +94,16 @@ class MatchingModel(nn.Module):
                 hidden_size=300,
                 text_attrs : list = [],
                 image_attr : str = '',
-                prefixes : tuple = ('left_', 'right_')
+                prefixes : tuple = ('left_', 'right_'),
+                device='cuda'
                 ):
 
         super(MatchingModel, self).__init__()
 
         self.text_encoder = text_encoder
+        self.image_encoder = image_encoder
+        self.device = device
+        
         self.attr_summarizer = attr_summarizer
         self.attr_condense_factor = attr_condense_factor
         self.attr_comparator = attr_comparator
@@ -340,15 +344,14 @@ class MatchingModel(nn.Module):
         # self._reset_embeddings(train_dataset.vocabs)
 
         # Instantiate all components using a small batch from training set.
-        if not init_batch:
-            run_iter = MatchingIterator(
-                train_dataset,
-                train_dataset,
-                train=False,
-                batch_size=4,
-                device='cpu',
-                sort_in_buckets=False)
-            init_batch = next(run_iter.__iter__())
+        for attr in init_batch:
+            for prefix in init_batch[attr]:
+                if type(init_batch[attr][prefix]) == dict:
+                    for k, v in init_batch[attr][prefix].items():
+                        init_batch[attr][prefix][k] = v.to('cpu')
+                elif type(init_batch[attr][prefix]) == torch.Tensor:
+                    init_batch[attr][prefix].to('cpu')
+        self.device = 'cpu'
         self.forward(init_batch)
 
         # Keep this init_batch for future initializations.
@@ -415,9 +418,9 @@ class MatchingModel(nn.Module):
             for prefix in self.prefixes:
                 token = self.text_encoder(input[attr][prefix])
                 embeddings[prefix + attr] = token
-        if self.image_attr and self.image_attr in input:
+        if self.image_attr:
             for prefix in self.prefixes:
-                embeddings[prefix + attr] = self.image_encoder(input[attr][prefix])
+                embeddings[prefix + self.image_attr] = self.image_encoder(input[self.image_attr][prefix]).to(self.device)
 
         attr_comparisons = []
         for name in self.attrs:
