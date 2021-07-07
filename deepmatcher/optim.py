@@ -158,7 +158,7 @@ class Optimizer(object):
             epoch:
                 The current epoch number.
         """
-
+        
         if self.start_decay_at is not None and epoch >= self.start_decay_at:
             self.start_decay = True
         if self.last_acc is not None and acc < self.last_acc:
@@ -169,4 +169,5 @@ class Optimizer(object):
             logger.info('Setting learning rate to {:0.3e} for next epoch'.format(self.lr))
 
         self.last_acc = acc
+        print(f'Updating Learning Rate: {self.lr:0.3e} Acc: {acc} Epoch: {epoch}')
         self._set_rate(self.lr)
