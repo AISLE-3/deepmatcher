@@ -351,7 +351,7 @@ class MatchingModel(nn.Module):
                         init_batch[attr][prefix][k] = v.to('cpu')
                 elif type(init_batch[attr][prefix]) == torch.Tensor:
                     init_batch[attr][prefix].to('cpu')
-        self.device = 'cpu'
+        # self.device = 'cpu'
         self.forward(init_batch)
 
         # Keep this init_batch for future initializations.
