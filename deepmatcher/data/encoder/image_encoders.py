@@ -3,8 +3,6 @@ import torch
 import numpy as np
 from PIL import Image
 
-import sys
-sys.path.append('../product-matching-core/')
 from pmcore.core.feature_extraction import DINOExtractor
 # %%
 class DINOImageEncoder():
