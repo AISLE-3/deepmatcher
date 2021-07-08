@@ -298,16 +298,16 @@ class Runner(object):
         Returns:
             float: The best F1 score obtained by the model on the validation dataset.
         """
-        train_dataloader = DataLoader(train_dataloader, batch_size=kwargs['batch_size'], shuffle=True,
-                                num_workers=0, collate_fn=train_dataloader.collate_fn,
-                                pin_memory=True)
-        validation_dataloader = DataLoader(validation_dataloader, batch_size=kwargs['batch_size'], shuffle=False,
-                                num_workers=0, collate_fn=validation_dataloader.collate_fn,
-                                pin_memory=True)
+        # train_dataloader = DataLoader(train_dataloader, batch_size=kwargs['batch_size'], shuffle=True,
+        #                         num_workers=0, collate_fn=train_dataloader.collate_fn,
+        #                         pin_memory=True)
+        # validation_dataloader = DataLoader(validation_dataloader, batch_size=kwargs['batch_size'], shuffle=False,
+        #                         num_workers=0, collate_fn=validation_dataloader.collate_fn,
+        #                         pin_memory=True)
 
-        ## initialize using an init batch
-        init_batch = next(iter(train_dataloader))['attrs']
-        model.initialize(init_batch)
+        # ## initialize using an init batch
+        # init_batch = next(iter(train_dataloader))['attrs']
+        # model.initialize(init_batch)
 
         model._register_train_buffer('optimizer_state', None)
         model._register_train_buffer('best_score', None)
