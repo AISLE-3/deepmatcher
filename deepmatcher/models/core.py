@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 
 from . import _utils
-from ..data import MatchingDataset, MatchingIterator
+# from ..data import MatchingDataset, MatchingIterator
 from ..runner import Runner
 from ..utils import Bunch, tally_parameters
 
@@ -111,8 +111,8 @@ class MatchingModel(nn.Module):
         self.classifier = classifier
 
         self.hidden_size = hidden_size
-        self._train_buffers = set()
         self._initialized = False
+        self.init_batch = None
 
         if len(text_attrs):
             assert text_encoder
@@ -125,6 +125,18 @@ class MatchingModel(nn.Module):
         print('text_attrs:', self.text_attrs)
         print('image_attr:', self.image_attr)
         print('prefixes:', self.prefixes)
+
+        self.init_config = {
+            "attr_summarizer":self.attr_summarizer,
+            "attr_condense_factor":attr_condense_factor,
+            "attr_comparator":self.attr_comparator,
+            "attr_merge":self.attr_merge,
+            "classifier":self.classifier,
+            "hidden_size":self.hidden_size,
+            "text_attrs":self.text_attrs,
+            "image_attr":self.image_attr,
+            "prefixes":self.prefixes,
+        }
 
         self.attrs = [attr for attr in [*self.text_attrs, self.image_attr] if attr]
         print('attrs:', self.attrs)
@@ -351,8 +363,10 @@ class MatchingModel(nn.Module):
                         init_batch[attr][prefix][k] = v.to('cpu')
                 elif type(init_batch[attr][prefix]) == torch.Tensor:
                     init_batch[attr][prefix].to('cpu')
+
         # self.device = 'cpu'
         self.forward(init_batch)
+        self.init_batch = init_batch
 
         # Keep this init_batch for future initializations.
         # self.state_meta.init_batch = init_batch
@@ -360,19 +374,6 @@ class MatchingModel(nn.Module):
         self._initialized = True
         logger.info('Successfully initialized MatchingModel with {:d} trainable '
                     'parameters.'.format(tally_parameters(self)))
-
-    def _reset_embeddings(self, vocabs):
-        self.embed = dm.modules.ModuleMap()
-        field_vectors = {}
-        for name in self.meta.all_text_fields:
-            vectors = vocabs[name].vectors
-            if vectors not in field_vectors:
-                vectors_size = vectors.shape
-                embed = nn.Embedding(vectors_size[0], vectors_size[1])
-                embed.weight.data.copy_(vectors)
-                embed.weight.requires_grad = False
-                field_vectors[vectors] = dm.modules.NoMeta(embed)
-            self.embed[name] = field_vectors[vectors]
 
     def _get_attr_comparator(self, arg, attr_summarizer):
         r"""Get the attribute comparator.
@@ -441,10 +442,10 @@ class MatchingModel(nn.Module):
     def _register_train_buffer(self, name, value):
         r"""Adds a persistent buffer containing training metadata to the module.
         """
-        self._train_buffers.add(name)
+        # self._train_buffers.add(name)
         setattr(self, name, value)
 
-    def save_state(self, path, include_meta=True):
+    def save_state(self, path):
         r"""Save the model state to a certain path.
 
         Args:
@@ -454,35 +455,32 @@ class MatchingModel(nn.Module):
                 automatically initialized upon loading - you will need to initialize
                 manually using :meth:`initialize`.
         """
-        state = {'model': self.state_dict()}
-        for k in self._train_buffers:
-            if include_meta or k != 'state_meta':
-                state[k] = getattr(self, k)
+        assert self._initialized and self.init_batch is not None
+        state = {
+            'model': self.state_dict(),
+            'init_batch' : self.init_batch,
+            'init_conifg' : self.init_config
+            }
         torch.save(state, path, pickle_module=dill)
 
-    def load_state(self, path, map_location=None):
-        r"""Load the model state from a file in a certain path.
-
+    @classmethod
+    def load_from_state(cls, path, text_encoder=None, image_encoder=None):
+        """
         Args:
             path (string): The path to load the model state from.
         """
-        state = torch.load(path, pickle_module=dill, map_location=map_location)
-        for k, v in six.iteritems(state):
-            if k != 'model':
-                self._train_buffers.add(k)
-                setattr(self, k, v)
-
-        if hasattr(self, 'state_meta'):
-            train_info = copy.copy(self.state_meta)
-
-            # Handle metadata manually.
-            # TODO (Sid): Make this cleaner.
-            train_info.metadata = train_info.orig_metadata
-            MatchingDataset.finalize_metadata(train_info)
-
-            self.initialize(train_info, self.state_meta.init_batch)
-
-        self.load_state_dict(state['model'])
+        state = torch.load(path, pickle_module=dill)
+        assert all([key in state for key in ("model", "init_batch", "init_config")])
+        print('initializing model from init batch')
+        init_config = state["init_config"]
+        print(f"found init_config :\n{init_config}")
+        module = cls(text_encoder, image_encoder, **init_config)
+        print('module __init__')
+        module.initialize(state["init_batch"])
+        print('intialized model')
+        module.load_state_dict(state['model'])
+        print("loaded weights")
+        return module
 
 class AttrSummarizer(dm.modules.LazyModule):
     r"""__init__(word_contextualizer, word_comparator, word_aggregator, hidden_size=None)
