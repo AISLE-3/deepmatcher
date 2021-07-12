@@ -34,7 +34,7 @@ setup(
     author_email='uwmagellan@gmail.com',
     url='http://deepmatcher.ml',
     license='BSD',
-    packages=['deepmatcher', 'deepmatcher.data', 'deepmatcher.models'],
+    packages=['deepmatcher', 'deepmatcher.data', 'deepmatcher.models', 'deepmatcher.data.encoder'],
     python_requires='>=3.5',
     install_requires=[
         'torch>=1.0', 'tqdm', 'pyprind', 'six', 'Cython', 'torchtext>=0.9',
