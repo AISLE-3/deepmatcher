@@ -17,10 +17,10 @@ class DeepMatcherDataset(Dataset):
 	def __init__(
 			self,
 			data_df: pd.DataFrame,
-			label_col: str,
+			label_col: str = None,
 			text_cols: list = None,
 			image_col: str = None,
-			images_dir: str = '',
+			images_dir: str = None,
 			tokenizer: Callable = None,
 			image_size=(256, 256),
 			prefixes=('left_', 'right_')
@@ -63,14 +63,15 @@ class DeepMatcherDataset(Dataset):
 		if self.use_image:
 			for prefix in self.prefixes:
 				attrs_data[self.image_col][prefix] = self.data_df.at[idx, prefix + self.image_col]
-		return {
-			'attrs': attrs_data,
-			'labels': int(self.data_df.at[idx, self.label_col])
-		}
+
+		item = {"attrs" : attrs_data}
+		if self.label_col:
+			item['labels'] = int(self.data_df.at[idx, self.label_col])
+		return item
 
 	def collate_fn(self, batch):
 		batch_attrs = defaultdict(dict)
-		batch_labels = torch.Tensor([sample['labels'] for sample in batch]).type(torch.long)
+
 
 		if self.use_image:
 			for prefix in self.prefixes:
@@ -85,7 +86,7 @@ class DeepMatcherDataset(Dataset):
 					slices[prefix].append(i)
 				for prefix in self.prefixes:
 					batch_attrs[attr][prefix] = {k : tokenized[k][slices[prefix]] for k in tokenized}
-		return {
-			"attrs" : dict(batch_attrs),
-			"labels" : batch_labels
-		}
+		out_batch = {"attrs" : dict(batch_attrs)}
+		if self.label_col:
+			out_batch["labels"] = torch.Tensor([sample['labels'] for sample in batch]).type(torch.long)
+		return out_batch
