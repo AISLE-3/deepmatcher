@@ -459,7 +459,7 @@ class MatchingModel(nn.Module):
         state = {
             'model': self.state_dict(),
             'init_batch' : self.init_batch,
-            'init_conifg' : self.init_config
+            'init_config' : self.init_config
             }
         torch.save(state, path, pickle_module=dill)
 
