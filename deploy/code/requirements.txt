@@ -1,3 +1,5 @@
 fasttext
+pandas
+numpy
 pyprind
 transformers
