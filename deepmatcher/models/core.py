@@ -462,6 +462,11 @@ class MatchingModel(nn.Module):
             'init_config' : self.init_config
             }
         torch.save(state, path, pickle_module=dill)
+    
+    def load_state(self, path, map_location=None):
+        # to load weights to an already initialized MatchingModule
+        state = torch.load(path, pickle_module=dill, map_location=map_location)
+        self.load_state_dict(state["model"])
 
     @classmethod
     def load_from_state(cls, path, text_encoder=None, image_encoder=None):
