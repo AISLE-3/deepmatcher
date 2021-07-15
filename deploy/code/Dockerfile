@@ -28,10 +28,10 @@ COPY requirements.txt /home/model-server/requirements.txt
 
 COPY model.pth /home/model-server/model.pth
 
-COPY entrypoint.py /usr/local/bin/entrypoint.py
-RUN chmod +x /usr/local/bin/entrypoint.py
+COPY entrypoint.py /home/model-server/entrypoint.py
+RUN chmod +x /home/model-server/entrypoint.py
 
 RUN pip3 install -r /home/model-server/requirements.txt
 
 # Define an entrypoint script for the docker image
-ENTRYPOINT ["python3", "/usr/local/bin/entrypoint.py"]
+ENTRYPOINT ["python3", "/home/model-server/entrypoint.py"]

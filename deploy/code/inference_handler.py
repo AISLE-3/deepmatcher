@@ -99,6 +99,6 @@ class DMInferenceHandler(default_inference_handler.DefaultInferenceHandler):
 
     def default_output_fn(self, prediction, content_type):
         try:
-            return encoder.encode({"results" : list(prediction), content_type}, content_type)
+            return encoder.encode({"results" : list(prediction)}, content_type)
         except Exception as e:
             logging.exception(e)
