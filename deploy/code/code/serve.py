@@ -31,26 +31,24 @@ def model_fn(model_dir):
     print('executing model_fn')
     print('model_dir', model_dir)
     print('model_dir_contents:', os.listdir(model_dir))
-    try:
-        text_encoder_identifier = CONFIG["text_encoder_identifier"]
-        text_encoder_trainable = CONFIG['text_encoder_trainable']
-        text_encoder_seq_to_vec = CONFIG['text_encoder_seq_to_vec']
-        text_encoder = HFTextEncoder(text_encoder_identifier, trainable=text_encoder_trainable, seqtovec=text_encoder_seq_to_vec)
-        global tokenizer
-        tokenizer = text_encoder.tokenizer
-        # image_encoder = DINOImageEncoder()
 
-        model = MatchingModel.load_from_state(
-            os.path.join(model_dir, "model.pth"),
-            text_encoder=text_encoder,
-            image_encoder=None,
-        )
-        print(model)
-        print('loaded model')
-        model = model.eval()
-        return model
-    except Exception as e:
-        logging.exception(e)
+    text_encoder_identifier = CONFIG["text_encoder_identifier"]
+    text_encoder_trainable = CONFIG['text_encoder_trainable']
+    text_encoder_seq_to_vec = CONFIG['text_encoder_seq_to_vec']
+    text_encoder = HFTextEncoder(text_encoder_identifier, trainable=text_encoder_trainable, seqtovec=text_encoder_seq_to_vec)
+    global tokenizer
+    tokenizer = text_encoder.tokenizer
+    # image_encoder = DINOImageEncoder()
+
+    model = MatchingModel.load_from_state(
+        os.path.join(model_dir, "model.pth"),
+        text_encoder=text_encoder,
+        image_encoder=None,
+    )
+    print(model)
+    print('loaded model')
+    model = model.eval()
+    return model
 
 def input_fn(input_data, content_type):
     """
@@ -63,8 +61,9 @@ def input_fn(input_data, content_type):
     print('input_fn:', 'input_data', input_data, 'type', type(input_data), 'content_type', content_type)
     input_data = decoder.decode(input_data, content_type)
     print('decoded input data:', input_data, 'type', type(input_data))
-    input_data = input_data.item()
-    print('item()', type(input_data))
+    # input_data = input_data.item()
+    input_data = input_data.tolist()
+    print('unpickled dtype:', type(input_data))
     if isinstance(input_data, str):
         input_data = json.loads(input_data)
     if isinstance(input_data, dict):
@@ -94,7 +93,7 @@ def predict_fn(input_data, model):
     matches = matches.flatten().cpu().numpy()
     print('matches', matches)
     return matches
-
+    
 def output_fn(prediction, content_type):
     print('output_fn:', 'prediction:', prediction, 'content_type', content_type)
     try:

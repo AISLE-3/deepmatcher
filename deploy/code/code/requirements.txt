@@ -3,4 +3,4 @@ pandas
 pyprind
 transformers
 deepmatcher@git+https://github.com/AISLE-3/deepmatcher.git@deploy
-pmcore@git+https://sour4bh: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@github.com/AISLE-3/product-matching-core
+pmcore@git+https://sour4bh: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@github.com/AISLE-3/product-matching-core

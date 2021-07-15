@@ -1,44 +1,37 @@
-FROM public.ecr.aws/x7a4z1z3/ml-base:latest
-
-# Set a docker label to advertise multi-model support on the container
-LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
-# Set a docker label to enable container to use SAGEMAKER_BIND_TO_PORT environment variable if present
-LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.8.1-cpu-py36-ubuntu18.04
+# FROM ubuntu:18.04
 
 # Install necessary dependencies for MMS and SageMaker Inference Toolkit
-# RUN apt-get update && \
-#     apt-get -y install --no-install-recommends \
-#     build-essential \
-#     ca-certificates \
-#     openjdk-8-jdk-headless \
-#     python3-dev \
-#     curl \
-#     vim \
-#     && rm -rf /var/lib/apt/lists/* \
-#     && curl -O https://bootstrap.pypa.io/get-pip.py \
-#     && python3 get-pip.py
+RUN apt-get update && \
+    apt-get -y install --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    openjdk-8-jdk-headless
 
-# RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
-# RUN update-alternatives --install /usr/local/bin/pip pip /usr/local/bin/pip3 1
+RUN apt-get install -y build-essential
 
-# Install MXNet, MMS, and SageMaker Inference Toolkit to set up MMS
-RUN pip3 --no-cache-dir install torch \
-                                multi-model-server \
-                                sagemaker-inference \
-                                retrying
+RUN apt-get install -y git
+
+RUN apt-get install -y python3-pip
+
+RUN python3 -m pip install --upgrade pip
+
+# Install sagemaker-training toolkit that contains the common functionality necessary to create a container compatible with SageMaker and the Python SDK.
+RUN pip3 install sagemaker-inference multi-model-server retrying
 
 # Copy entrypoint script to the image
+RUN mkdir -p /home/model-server/
+
+COPY inference_handler.py /home/model-server/inference_handler.py
+COPY handler_service.py /home/model-server/handler_service.py
+COPY requirements.txt /home/model-server/requirements.txt
+
+COPY model.pth /home/model-server/model.pth
+
 COPY entrypoint.py /usr/local/bin/entrypoint.py
 RUN chmod +x /usr/local/bin/entrypoint.py
 
-RUN mkdir -p /home/model-server/
-
-# Copy the default custom service file to handle incoming data and inference requests
-COPY handler_service.py /home/model-server/handler_service.py
-COPY inference_handler.py /home/model-server/inference_handler.py
+RUN pip3 install -r /home/model-server/requirements.txt
 
 # Define an entrypoint script for the docker image
-ENTRYPOINT ["python", "/usr/local/bin/entrypoint.py"]
-
-# Define command to be passed to the entrypoint
-CMD ["serve"]
+ENTRYPOINT ["python3", "/usr/local/bin/entrypoint.py"]

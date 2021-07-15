@@ -1,4 +1,3 @@
 from sagemaker_inference import model_server
-from handler_service import DefaultHandlerService
 
-model_server.start_model_server(handler_service=DefaultHandlerService)
+model_server.start_model_server(handler_service="/home/model-server/handler_service.py")
