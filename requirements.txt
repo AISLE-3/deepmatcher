@@ -1,6 +1,6 @@
 opencv-python
-torchtext==0.9.1
 torch==1.8.1
+torchtext==0.9.1
 transformers==0.4
 tqdm
 pandas
