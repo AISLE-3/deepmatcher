@@ -5,4 +5,3 @@ transformers==0.4
 tqdm
 pandas
 Pillow
-pmcore@git+https://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@github.com/AISLE-3/product-matching-core
